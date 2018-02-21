@@ -1,4 +1,4 @@
-package sample;
+package mainPage;
 
 public class Controller {
 }
