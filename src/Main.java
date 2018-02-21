@@ -10,6 +10,8 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("pages/mainPage.fxml"));
         primaryStage.setTitle("Guitar Chords Song Book");
+        primaryStage.setMinHeight(640);
+        primaryStage.setMinWidth(1000);
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }
