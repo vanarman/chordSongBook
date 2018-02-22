@@ -1,5 +1,15 @@
 package pages;
 
+import DB.DBExtractionModification;
+import dataStructures.AuthorNode;
+import dataStructures.LyricNode;
+import dataStructures.SongNode;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.HPos;
@@ -11,6 +21,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 /**
@@ -18,6 +29,11 @@ import java.util.ResourceBundle;
  */
 public class MainPageController implements Initializable {
     @FXML private GridPane mainGridPane;
+    private ListView authorList;
+    private ListView songList;
+    private Label authorSongLabel;
+    private TextArea songLyric;
+    private Button saveLyricBtn;
 
     /**
      * Initializes enter point
@@ -32,7 +48,7 @@ public class MainPageController implements Initializable {
         Image editImg = new Image(getClass().getResourceAsStream("../style/img/edit.png"));
 
         // Generate author column with favorite toggle, author list and add, edit, delete buttons
-        ListView authorList = new ListView(null);
+        authorList = getAuthorList();
         Button addAuthorBtn = new Button();
         Button removeAuthorBtn = new Button();
         Button editAuthorBtn = new Button();
@@ -73,21 +89,21 @@ public class MainPageController implements Initializable {
         authorColumn.getRowConstraints().addAll(authorRowConstr1, authorRowConstr2, authorRowConstr1);
 
         // Generate songs column with author list and add, edit, delete buttons
-        ListView songList = new ListView(null);
-        Button addSong = new Button();
-        Button removeSong = new Button();
-        Button editSong = new Button();
+        songList = getSongList(authorList.getSelectionModel().getSelectedIndex());
+        Button addSongBtn = new Button();
+        Button removeSongBtn = new Button();
+        Button editSongBtn = new Button();
 
         // Assign images for corresponding buttons
-        addSong.setGraphic(new ImageView(addImg));
-        editSong.setGraphic(new ImageView(editImg));
-        removeSong.setGraphic(new ImageView(delImg));
+        addSongBtn.setGraphic(new ImageView(addImg));
+        editSongBtn.setGraphic(new ImageView(editImg));
+        removeSongBtn.setGraphic(new ImageView(delImg));
 
         // Horizontal pane for control buttons (add, edit, delete)
         HBox songHButtonBox = new HBox();
         songHButtonBox.setAlignment(Pos.CENTER);
         songHButtonBox.setSpacing(5);
-        songHButtonBox.getChildren().setAll(addSong, removeSong, editSong);
+        songHButtonBox.getChildren().setAll(addSongBtn, removeSongBtn, editSongBtn);
 
         // Song column
         GridPane songColumn = new GridPane();
@@ -99,10 +115,12 @@ public class MainPageController implements Initializable {
         songColumn.getRowConstraints().addAll(songRowConstr2, songRowConstr1);
 
         // Generate lyric column with author-song label, song lyric, edit lyric and save lyric
-        TextArea songLyric = new TextArea();
+        songLyric = new TextArea();
+        songLyric.setEditable(false);
         Button editLyricEnableBtn = new Button("Enable Editing");
-        Button saveLyricBtn = new Button("Save Lyric");
-        Label authorSongLabel = new Label("Author - Song");
+        saveLyricBtn = new Button("Save Lyric");
+        saveLyricBtn.setDisable(true);
+        authorSongLabel = new Label("Author - Song");
 
         // Horizontal pane for edit save lyric buttons
         HBox lyricButtonsHBox = new HBox();
@@ -115,14 +133,13 @@ public class MainPageController implements Initializable {
         lyricColumn.add(authorSongLabel, 0, 0);
         lyricColumn.add(songLyric, 0, 1);
         lyricColumn.add(lyricButtonsHBox, 0, 2);
-        lyricColumn.setHalignment(authorSongLabel, HPos.CENTER);
+        GridPane.setHalignment(authorSongLabel, HPos.CENTER);
 
         RowConstraints lyricRowConstr1 = new RowConstraints(40);
         RowConstraints lyricRowConstr2 = new RowConstraints(200, 10000, 15000);
         ColumnConstraints lyricColumn0 = new ColumnConstraints(200, 10000, 15000);
         lyricColumn.getColumnConstraints().addAll(lyricColumn0);
         lyricColumn.getRowConstraints().addAll(lyricRowConstr1, lyricRowConstr2, lyricRowConstr1);
-
 
         Button closeProgram = new Button("Exit");
 
@@ -150,5 +167,102 @@ public class MainPageController implements Initializable {
         GridPane.setHalignment(authorColumn, HPos.LEFT);
         GridPane.setHalignment(lyricColumn, HPos.CENTER);
         GridPane.setHalignment(songColumn, HPos.RIGHT);
+
+        /**
+         * Edit lyric button click event
+         */
+        editLyricEnableBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                saveLyricBtn.setDisable(false);
+                songLyric.setEditable(true);
+            }
+        });
+
+        /**
+         * Update song list and lyric (first song by default) when select author
+         */
+        authorList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<AuthorNode>() {
+            @Override
+            public void changed(ObservableValue<? extends AuthorNode> observable, AuthorNode oldValue, AuthorNode newValue) {
+                if(newValue != null) {
+                    getSongList(newValue.getId());
+                    getSongLyric(songList.getSelectionModel().getSelectedIndex());
+                }
+            }
+        });
+
+        /**
+         * Update song lyric when select song from list
+         */
+        songList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                if(newValue != null) {
+                    //getSongLyric(songList.getSelectionModel().getSelectedIndex());
+                }
+            }
+        });
+
+    }
+
+    /**
+     * Get list of authors from db
+     *
+     * @return ListView list of authors
+     */
+    private ListView<AuthorNode> getAuthorList() {
+        if (authorList == null) {
+            authorList = new ListView<AuthorNode>();
+            authorList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        }
+        ArrayList<AuthorNode> authorArrList = null;
+        authorArrList = new DBExtractionModification().getAuthorsList(-1);
+
+        ObservableList<AuthorNode> authors = FXCollections.observableArrayList (authorArrList);
+        authorList.setItems(authors);
+        authorList.getSelectionModel().selectFirst();
+        authorList.refresh();
+
+        return authorList;
+    }
+
+    /**
+     * Get list of song regarding to selected author
+     *
+     * @param selectedAuthor int author id
+     * @return ListView list of songs
+     */
+    private ListView<SongNode> getSongList(int selectedAuthor) {
+        if (songList == null) {
+            songList = new ListView<SongNode>();
+            songList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        }
+        ArrayList<SongNode> songArrList = null;
+        songArrList = new DBExtractionModification().getSongData(selectedAuthor);
+
+        ObservableList<SongNode> songs = FXCollections.observableArrayList (songArrList);
+        songList.setItems(songs);
+        songList.getSelectionModel().selectFirst();
+        songList.refresh();
+
+        return songList;
+    }
+
+    private TextArea getSongLyric(int songId){
+        if(songLyric == null){
+            songLyric = new TextArea();
+        }
+
+        ArrayList<LyricNode> songsArrList = new DBExtractionModification().getLyricData(songId);
+        if(!songsArrList.isEmpty()) {
+            songLyric.setText(songsArrList.get(0).getLyric());
+        } else {
+            songLyric.setText(null);
+        }
+
+        songLyric.setEditable(false);
+
+        return songLyric;
     }
 }

@@ -19,10 +19,10 @@ public class SQLConnection {
     public SQLConnection(){
         try {
             // db parameters songDB
-            String url = "jdbc:sqlite:identifier.sqlite";
+            String url = "jdbc:sqlite:songBook.sqlite";
             // create a connection to the database
             Class.forName("org.sqlite.JDBC");
-            c = DriverManager.getConnection(url, "", "");
+            c = DriverManager.getConnection(url, "vanarman", "");
             c.setAutoCommit(true);
         } catch (SQLException e) {
             System.out.println("Connection to the DB cannot be performed.");
