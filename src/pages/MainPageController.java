@@ -19,6 +19,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.text.Font;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -31,7 +32,8 @@ public class MainPageController implements Initializable {
     @FXML private GridPane mainGridPane;
     private ListView<AuthorNode> authorList;
     private ListView<SongNode> songList;
-    private Label authorSongLabel;
+    private LyricNode lyricNode;
+    private Label authorSongLabel = new Label();
     private TextArea songLyric;
     private Button saveLyricBtn;
 
@@ -58,7 +60,6 @@ public class MainPageController implements Initializable {
         editAuthorBtn.setGraphic(new ImageView(editImg));
         removeAuthorBtn.setGraphic(new ImageView(delImg));
 
-        addAuthorBtn.setDisable(true);
         editAuthorBtn.setDisable(true);
         removeAuthorBtn.setDisable(true);
 
@@ -98,10 +99,6 @@ public class MainPageController implements Initializable {
         Button removeSongBtn = new Button();
         Button editSongBtn = new Button();
 
-        addSongBtn.setDisable(true);
-        removeSongBtn.setDisable(true);
-        editSongBtn.setDisable(true);
-
         // Assign images for corresponding buttons
         addSongBtn.setGraphic(new ImageView(addImg));
         editSongBtn.setGraphic(new ImageView(editImg));
@@ -128,7 +125,7 @@ public class MainPageController implements Initializable {
         Button editLyricEnableBtn = new Button("Enable Editing");
         saveLyricBtn = new Button("Save Lyric");
         saveLyricBtn.setDisable(true);
-        authorSongLabel = new Label("Author - Song");
+        authorSongLabel.setFont(new Font("Arial", 30));
 
         // Horizontal pane for edit save lyric buttons
         HBox lyricButtonsHBox = new HBox();
@@ -177,13 +174,47 @@ public class MainPageController implements Initializable {
         GridPane.setHalignment(songColumn, HPos.RIGHT);
 
         /**
-         * Edit lyric button click event
+         * Edit lyric button click event handler
          */
         editLyricEnableBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                saveLyricBtn.setDisable(false);
-                songLyric.setEditable(true);
+                saveLyricBtn.setDisable(!saveLyricBtn.isDisable());
+                songLyric.setEditable(saveLyricBtn.isDisable());
+            }
+        });
+
+        /**
+         * Add author button click event handler
+         */
+        addAuthorBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                new AuthorPageController(null);
+            }
+        });
+
+        /**
+         * Add author button click event handler
+         */
+        editAuthorBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                new AuthorPageController(authorList.getSelectionModel().getSelectedItem());
+            }
+        });
+
+        addSongBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                new SongPageController(null);
+            }
+        });
+
+        editSongBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                new SongPageController(lyricNode);
             }
         });
 
@@ -193,9 +224,8 @@ public class MainPageController implements Initializable {
         authorList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<AuthorNode>() {
             @Override
             public void changed(ObservableValue<? extends AuthorNode> observable, AuthorNode oldValue, AuthorNode newValue) {
-                addAuthorBtn.setDisable(false);
-                editAuthorBtn.setDisable(false);
-                removeAuthorBtn.setDisable(false);
+                editAuthorBtn.setDisable(newValue.getId() == 0);
+                removeAuthorBtn.setDisable(newValue.getId() == 0);
 
                 if(newValue != null) {
                     getSongList(newValue.getId());
@@ -210,12 +240,19 @@ public class MainPageController implements Initializable {
         songList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
             @Override
             public void changed(ObservableValue observable, Object oldValue, Object newValue) {
-                addSongBtn.setDisable(false);
-                removeSongBtn.setDisable(false);
-                editSongBtn.setDisable(false);
                 if(newValue != null) {
                     getSongLyric(songList.getSelectionModel().getSelectedItem().getSid());
+                    authorSongLabel.setText(authorList.getSelectionModel().getSelectedItem().getAuthorName()+ " - " +songList.getSelectionModel().getSelectedItem().getSongName());
                 }
+            }
+        });
+
+        removeSongBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                new DBExtractionModification().removeSong(songList.getSelectionModel().getSelectedItem().getSid());
+                songList.getItems().remove(songList.getSelectionModel().getSelectedIndex());
+                songList.refresh();
             }
         });
 
@@ -251,10 +288,12 @@ public class MainPageController implements Initializable {
         ArrayList<SongNode> songArrList = null;
         songArrList = new DBExtractionModification().getSongData(selectedAuthor);
 
-        ObservableList<SongNode> songs = FXCollections.observableArrayList (songArrList);
+        ObservableList<SongNode> songs = FXCollections.observableArrayList(songArrList);
         songList.setItems(songs);
         songList.getSelectionModel().selectFirst();
         songList.refresh();
+
+        authorSongLabel.setText(authorList.getSelectionModel().getSelectedItem().getAuthorName() + " - " + songList.getSelectionModel().getSelectedItem().getSongName());
     }
 
     /**
@@ -269,7 +308,8 @@ public class MainPageController implements Initializable {
 
         ArrayList<LyricNode> songsArrList = new DBExtractionModification().getLyricData(songId);
         if(!songsArrList.isEmpty()) {
-            songLyric.setText(songsArrList.get(0).getLyric());
+            lyricNode = songsArrList.get(0);
+            songLyric.setText(lyricNode.getLyric());
         } else {
             songLyric.setText(null);
         }

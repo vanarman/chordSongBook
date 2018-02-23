@@ -4,10 +4,7 @@ import dataStructures.AuthorNode;
 import dataStructures.LyricNode;
 import dataStructures.SongNode;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 
 /**
@@ -26,42 +23,29 @@ public class DBExtractionModification {
         this.c = new SQLConnection().getConnection();
     }
 
-    public ArrayList<AuthorNode> getAuthorsList(int id){
+    public ArrayList<AuthorNode> getAuthorsList(int authorId){
         Statement statement = null;
         ResultSet result = null;
         ArrayList<AuthorNode> authorScope = new ArrayList<AuthorNode>();
 
         try {
             statement = c.createStatement();
-        } catch (SQLException e) {
-            System.out.println("Cannot create statement for getAuthorData!!!");
-        }
 
-        String sql = "SELECT * FROM author ";
+            String sql = "SELECT * FROM author";
 
-        if(id > -1){
-            sql += "WHERE id = "+ id;
-        }
+            if(authorId > -1){
+                sql += " WHERE id = "+ authorId;
+            }
 
-        try {
             result = statement.executeQuery(sql);
-        } catch (SQLException e) {
-            System.out.println("Cannot execute getAuthorData query!!!\nSQL QUERY: "+ sql);
-            System.out.println(e.getMessage());
-        }
 
-        try {
             while (result != null && result.next()){
                 authorScope.add(new AuthorNode(result.getInt("id"), result.getString("aName")));
             }
-        } catch (SQLException e) {
-            System.out.println("Cannot retrieve data from getAuthorData result set.");
-        }
 
-        try {
             statement.close();
         } catch (SQLException e) {
-            System.out.println("Cannot close statement in getAuthorData.");
+            System.out.println("Cannot resolve getAuthorsList operation where authorId = "+ authorId);
         }
         return authorScope;
     }
@@ -76,33 +60,21 @@ public class DBExtractionModification {
         ResultSet result = null;
         ArrayList<SongNode> songScope = new ArrayList<SongNode>();
 
-        try {
-            statement = c.createStatement();
-        } catch (SQLException e) {
-            System.out.println("Cannot create statement for getSongData!!!");
-        }
-
         String sql = "SELECT S.id, S.sName, S.authorId, A.aName FROM author A, songs S ";
         sql += "WHERE S.authorId = A.id AND S.authorId = "+ authorId;
 
         try {
+            statement = c.createStatement();
+            assert statement != null;
             result = statement.executeQuery(sql);
-        } catch (SQLException e) {
-            System.out.println("Cannot execute getSongData query!!!\nSQL QUERY: "+ sql);
-        }
 
-        try {
             while (result != null && result.next()){
                 songScope.add(new SongNode(result.getInt("id"), result.getString("sName")));
             }
-        } catch (SQLException e) {
-            System.out.println("Cannot retrieve data from getSongData result set.");
-        }
 
-        try {
             statement.close();
         } catch (SQLException e) {
-            System.out.println("Cannot close statement in getSongData.");
+            System.out.println("Cannot resolve getSongData operation where authorId = "+ authorId);
         }
         return songScope;
     }
@@ -116,36 +88,43 @@ public class DBExtractionModification {
         ResultSet result = null;
         ArrayList<LyricNode> lyricScope = new ArrayList<LyricNode>();
 
-        try {
-            statement = c.createStatement();
-        } catch (SQLException e) {
-            System.out.println("Cannot create statement for getLyricData!!!");
-        }
-
         String sql = "SELECT L.id, L.songText, L.songId, S.sName, S.authorId, A.aName FROM lyric L, author A, songs S ";
         sql += "WHERE S.authorId = A.id AND L.songId = S.id AND L.songId = "+ songId;
 
         try {
+            statement = c.createStatement();
             assert statement != null;
             result = statement.executeQuery(sql);
-        } catch (SQLException e) {
-            System.out.println("Cannot execute getLyricData query!!!\nSQL QUERY: "+ sql);
-        }
 
-        try {
             while (result != null && result.next()){
                 //int songId,                           String songName,                    int authorId,                       String authorName,                      String songText
                 lyricScope.add(new LyricNode(result.getInt("songId"), result.getString("sName"), result.getString("songText")));
             }
-        } catch (SQLException e) {
-            System.out.println("Cannot retrieve data from getLyricData result set.");
-        }
 
-        try {
             statement.close();
         } catch (SQLException e) {
-            System.out.println("Cannot close statement in getLyricData.");
+            System.out.println("Cannot resolve getLyricData operation where songId = "+ songId);
         }
         return lyricScope;
+    }
+
+    public void removeSong(int songId) {
+
+        String sql0 = "DELETE FROM lyric WHERE songId = "+ songId;
+        String sql1 = "DELETE FROM songs WHERE id = "+ songId;
+
+        try (
+            Connection conn = c;
+            PreparedStatement pstmt0 = conn.prepareStatement(sql0);
+            PreparedStatement pstmt1 = conn.prepareStatement(sql1)) {
+            // Execute delete statement
+            pstmt0.executeUpdate();
+            pstmt1.executeUpdate();
+
+            pstmt0.close();
+            pstmt1.close();
+        } catch (SQLException e) {
+            System.out.println("Cannot resolve removeSong operation where songId = "+ songId);
+        }
     }
 }

@@ -1,0 +1,27 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="chordSongBook">
+    <output-path>$PROJECT_DIR$/out/artifacts/chordSongBook</output-path>
+    <properties id="javafx-properties">
+      <options>
+        <option name="appClass" value="Main" />
+        <option name="description" value="" />
+        <option name="htmlPlaceholderId" value="" />
+        <option name="icons">
+          <JavaFxApplicationIcons>
+            <option name="linuxIcon" value="$PROJECT_DIR$/src/style/img/music.png" />
+            <option name="macIcon" value="$PROJECT_DIR$/src/style/img/music.png" />
+            <option name="windowsIcon" value="$PROJECT_DIR$/src/style/img/music.png" />
+          </JavaFxApplicationIcons>
+        </option>
+        <option name="title" value="Song Book" />
+        <option name="vendor" value="VanArman (Dmytro Sytnik)" />
+        <option name="version" value="" />
+      </options>
+    </properties>
+    <root id="root">
+      <element id="archive" name="chordSongBook.jar">
+        <element id="module-output" name="chordSongBook" />
+      </element>
+    </root>
+  </artifact>
+</component>

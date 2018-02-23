@@ -6,9 +6,12 @@
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/songBook.sqlite</jdbc-url>
+      <default-dialect>SQLite</default-dialect>
       <driver-properties>
         <property name="enable_load_extension" value="true" />
         <property name="encoding" value="'UTF-8'" />
+        <property name="foreign_keys" value="true" />
+        <property name="fullsync" value="true" />
       </driver-properties>
     </data-source>
   </component>
