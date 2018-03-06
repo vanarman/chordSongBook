@@ -1,5 +1,6 @@
 package pages;
 
+import DB.DBExtractionModification;
 import dataStructures.AuthorNode;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -20,20 +21,20 @@ import javafx.stage.Stage;
  */
 public class AuthorPageController {
         private GridPane authorGridPane = new GridPane();
+        private AuthorNode newAuthorNode;
 
-    public AuthorPageController(AuthorNode author) {
+    public AuthorPageController(AuthorNode authorNode) {
         StackPane authorLayout = new StackPane();
         authorLayout.getChildren().add(authorGridPane);
         Scene authorScene = new Scene(authorLayout, 370, 70);
         Stage authorStage = new Stage();
         authorStage.setResizable(false);
-        authorStage.setTitle(author != null ? "Edit Author" : "Add Author");
+        authorStage.setTitle(authorNode != null ? "Edit Author" : "Add Author");
         authorStage.setScene(authorScene);
-        authorStage.show();
 
         Label authorLabel = new Label("Author/Group Name: ");
         TextField authorNameField = new TextField();
-        authorNameField.appendText(author != null ? author.getAuthorName() : "");
+        authorNameField.appendText(authorNode != null ? authorNode.getAuthorName() : "");
         authorNameField.setPrefWidth(200);
         Button saveBtn = new Button("Save");
         saveBtn.setDefaultButton(true);
@@ -64,8 +65,24 @@ public class AuthorPageController {
         saveBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                if(authorNode == null) {
+                    int newId = new DBExtractionModification().updateAuthor(authorNameField.getText(), -1);
+                    newAuthorNode = new AuthorNode(newId, authorNameField.getText());
+                } else {
+                    new DBExtractionModification().updateAuthor(authorNameField.getText(), authorNode.getId());
+                    authorNode.setAuthorName(authorNameField.getText());
+                }
 
+                authorStage.close();
             }
         });
+
+        newAuthorNode = authorNode;
+
+        authorStage.showAndWait();
+    }
+
+    public AuthorNode getAuthorNode() {
+        return newAuthorNode;
     }
 }

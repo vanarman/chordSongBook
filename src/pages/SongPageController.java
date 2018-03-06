@@ -1,18 +1,22 @@
 package pages;
 
+import DB.DBExtractionModification;
+import dataStructures.AuthorNode;
 import dataStructures.LyricNode;
+import dataStructures.SongNode;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+
+import java.util.ArrayList;
 
 /**
  * @author Dmytro Sytnik (VanArman)
@@ -20,16 +24,24 @@ import javafx.stage.Stage;
  */
 public class SongPageController {
     private GridPane songGridPane = new GridPane();
+    private SongNode newSongNode;
 
-    public SongPageController(LyricNode song){
+    public SongPageController(SongNode songNode, LyricNode lyricNode, int authorId){
         StackPane songLayout = new StackPane();
         songLayout.getChildren().add(songGridPane);
-        Scene songScene = new Scene(songLayout, 370, 330);
+        Scene songScene = new Scene(songLayout, 350, 170);
         Stage songStage = new Stage();
         songStage.setResizable(false);
-        songStage.setTitle(song != null ? "Edit Song" : "Add Song");
+        songStage.setTitle(songNode != null ? "Edit Song" : "Add Song");
         songStage.setScene(songScene);
-        songStage.show();
+
+        ArrayList<AuthorNode> authorArrList = null;
+        authorArrList = new DBExtractionModification().getAuthorsList(-1);
+        ObservableList<AuthorNode> authors = FXCollections.observableArrayList (authorArrList);
+
+        ComboBox<AuthorNode> authorDropDown = new ComboBox<AuthorNode>(authors);
+        authorDropDown.getSelectionModel().select(authorId);
+        authorDropDown.setPrefWidth(350);
 
         Button saveBtn = new Button("Save");
         saveBtn.setDefaultButton(true);
@@ -40,10 +52,11 @@ public class SongPageController {
         Label lyricLabel = new Label("Song Lyric: ");
 
         TextField songField = new TextField();
+        songField.setPrefWidth(350);
         TextArea songLyric = new TextArea();
 
-        songField.appendText(song != null ? song.getSongName() : "");
-        songLyric.appendText(song != null ? song.getLyric() : "");
+        songField.appendText(songNode != null ? songNode.getSongName() : "");
+        songLyric.appendText(songNode != null ? lyricNode.getLyric() : "");
 
         songGridPane.setVgap(10);
         songGridPane.setHgap(10);
@@ -52,10 +65,14 @@ public class SongPageController {
         songGridPane.setPadding(new Insets(10, 5, 10, 5));
         songGridPane.add(songNameLabel, 0, 0, 2,1);
         songGridPane.add(songField, 0, 1, 2, 1);
-        songGridPane.add(lyricLabel, 0, 2, 2, 1);
-        songGridPane.add(songLyric, 0, 3, 2, 1);
-        songGridPane.add(cancelBtn, 0, 4, 1, 1);
-        songGridPane.add(saveBtn, 1, 4, 1, 1);
+        songGridPane.add(authorDropDown, 0, 2, 2, 1);
+        if(songNode == null) {
+            songScene.getWindow().setHeight(350);
+            songGridPane.add(lyricLabel, 0, 3, 2, 1);
+            songGridPane.add(songLyric, 0, 4, 2, 1);
+        }
+        songGridPane.add(cancelBtn, 0, 5, 1, 1);
+        songGridPane.add(saveBtn, 1, 5, 1, 1);
 
         cancelBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -63,5 +80,27 @@ public class SongPageController {
                 songStage.close();
             }
         });
+
+        saveBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if(songNode == null) {
+                    int newId = new DBExtractionModification().addNewSong(songField.getText(), songLyric.getText(), authorDropDown.getSelectionModel().getSelectedItem().getId());
+                    newSongNode = new SongNode(newId, songField.getText(), authorDropDown.getSelectionModel().getSelectedItem().getId());
+                } else {
+                    new DBExtractionModification().updateSong(songField.getText(), songNode.getSid());
+                    songNode.setSongName(songField.getText());
+                }
+
+                songStage.close();
+            }
+        });
+        newSongNode = songNode;
+
+        songStage.showAndWait();
+    }
+
+    public SongNode getSongNode() {
+        return newSongNode;
     }
 }

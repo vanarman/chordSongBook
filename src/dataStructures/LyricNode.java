@@ -7,8 +7,8 @@ package dataStructures;
 public class LyricNode extends SongNode{
     private String lyric;
 
-    public LyricNode(int songId, String songName, String songText) {
-        super(songId, songName);
+    public LyricNode(int songId, String songName, String songText, int authorId) {
+        super(songId, songName, authorId);
         this.lyric = songText;
     }
 

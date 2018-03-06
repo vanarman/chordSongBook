@@ -23,6 +23,7 @@ import javafx.scene.text.Font;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 /**
@@ -36,6 +37,7 @@ public class MainPageController implements Initializable {
     private Label authorSongLabel = new Label();
     private TextArea songLyric;
     private Button saveLyricBtn;
+    private Button editLyricEnableBtn;
 
     /**
      * Initializes enter point
@@ -120,9 +122,10 @@ public class MainPageController implements Initializable {
         songColumn.getRowConstraints().addAll(songRowConstr2, songRowConstr1);
 
         // Generate lyric column with author-song label, song lyric, edit lyric and save lyric
-        getSongLyric(songList.getSelectionModel().getSelectedIndex());
+        getSongLyric(songList.getSelectionModel().getSelectedItem().getSid());
         songLyric.setEditable(false);
-        Button editLyricEnableBtn = new Button("Enable Editing");
+        editLyricEnableBtn = new Button("Enable Editing");
+        editLyricEnableBtn.setDisable(false);
         saveLyricBtn = new Button("Save Lyric");
         saveLyricBtn.setDisable(true);
         authorSongLabel.setFont(new Font("Arial", 30));
@@ -180,73 +183,99 @@ public class MainPageController implements Initializable {
             @Override
             public void handle(ActionEvent event) {
                 saveLyricBtn.setDisable(!saveLyricBtn.isDisable());
-                songLyric.setEditable(saveLyricBtn.isDisable());
+                songLyric.setEditable(!saveLyricBtn.isDisable());
+            }
+        });
+
+        /**
+         * Save lyric button click event handler
+         */
+        saveLyricBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                saveLyricBtn.setDisable(!saveLyricBtn.isDisable());
+                songLyric.setEditable(!saveLyricBtn.isDisable());
+
+                new DBExtractionModification().updateLyric(songLyric.getText(), songList.getSelectionModel().getSelectedItem().getSid());
             }
         });
 
         /**
          * Add author button click event handler
+         * Request Author page
          */
         addAuthorBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                new AuthorPageController(null);
+                AuthorNode aNode = new AuthorPageController(null).getAuthorNode();
+                authorList.getItems().add(aNode);
+                authorList.refresh();
             }
         });
 
         /**
-         * Add author button click event handler
+         * Edit author button click event handler
+         * Requests Author page with AuthorNode
          */
         editAuthorBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                new AuthorPageController(authorList.getSelectionModel().getSelectedItem());
+                AuthorNode aNode = new AuthorPageController(authorList.getSelectionModel().getSelectedItem()).getAuthorNode();
+                authorList.refresh();
+                //authorSongLabel.setText(authorList.getSelectionModel().getSelectedItem().getAuthorName()+ " - " +songList.getSelectionModel().getSelectedItem().getSongName());
             }
         });
 
+        /**
+         * Remove author button event handler of selected author
+         */
+        removeAuthorBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Remove Author");
+                alert.setHeaderText("Do you really want to delete "+ authorList.getSelectionModel().getSelectedItem().getAuthorName());
+                alert.setContentText("All songs would be transferred to (Unknown)");
+
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.get() == ButtonType.OK){
+                    new DBExtractionModification().removeAuthor(authorList.getSelectionModel().getSelectedItem().getId());
+                    authorList.getItems().remove(authorList.getSelectionModel().getSelectedIndex());
+                    authorList.refresh();
+                } else {
+                    alert.close();
+                }
+            }
+        });
+
+        /**
+         * Add song button click event handler
+         * Request Song page
+         */
         addSongBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                new SongPageController(null);
+                SongNode sNode = new SongPageController(null, lyricNode, authorList.getSelectionModel().getSelectedItem().getId()).getSongNode();
+                songList.getItems().add(sNode);
+                songList.refresh();
             }
         });
 
+        /**
+         * Edit song button click event handler
+         * Request Song page with LyricNode
+         */
         editSongBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                new SongPageController(lyricNode);
+                new SongPageController(songList.getSelectionModel().getSelectedItem(), lyricNode, authorList.getSelectionModel().getSelectedItem().getId());
+                songList.refresh();
             }
         });
 
         /**
-         * Update song list and lyric (first song by default) when select author
+         * Remove song button event handler of selected song
          */
-        authorList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<AuthorNode>() {
-            @Override
-            public void changed(ObservableValue<? extends AuthorNode> observable, AuthorNode oldValue, AuthorNode newValue) {
-                editAuthorBtn.setDisable(newValue.getId() == 0);
-                removeAuthorBtn.setDisable(newValue.getId() == 0);
-
-                if(newValue != null) {
-                    getSongList(newValue.getId());
-                    getSongLyric(songList.getSelectionModel().getSelectedItem().getSid());
-                }
-            }
-        });
-
-        /**
-         * Update song lyric when select song from list
-         */
-        songList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
-            @Override
-            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
-                if(newValue != null) {
-                    getSongLyric(songList.getSelectionModel().getSelectedItem().getSid());
-                    authorSongLabel.setText(authorList.getSelectionModel().getSelectedItem().getAuthorName()+ " - " +songList.getSelectionModel().getSelectedItem().getSongName());
-                }
-            }
-        });
-
         removeSongBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -256,6 +285,40 @@ public class MainPageController implements Initializable {
             }
         });
 
+        /**
+         * Update song list and lyric (first song by default) when author selected
+         * Disable edit and delete buttons when (unknown) author selected
+         */
+        authorList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<AuthorNode>() {
+            @Override
+            public void changed(ObservableValue<? extends AuthorNode> observable, AuthorNode oldValue, AuthorNode newValue) {
+                editAuthorBtn.setDisable(newValue.getId() == 0);
+                removeAuthorBtn.setDisable(newValue.getId() == 0);
+                if(newValue != null) {
+                    getSongList(newValue.getId());
+                }
+            }
+        });
+
+        /**
+         * Update song lyric when select song from list
+         * Update title label with author and song name
+         */
+        songList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                if(newValue != null) {
+                    if(songList != null) {
+                        getSongLyric(songList.getSelectionModel().getSelectedItem().getSid());
+                        authorSongLabel.setText(authorList.getSelectionModel().getSelectedItem().getAuthorName() + " - " + songList.getSelectionModel().getSelectedItem().getSongName());
+                        editLyricEnableBtn.setDisable(false);
+                } else {
+                        songList = new ListView<SongNode>();
+                        editLyricEnableBtn.setDisable(true);
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -288,12 +351,17 @@ public class MainPageController implements Initializable {
         ArrayList<SongNode> songArrList = null;
         songArrList = new DBExtractionModification().getSongData(selectedAuthor);
 
-        ObservableList<SongNode> songs = FXCollections.observableArrayList(songArrList);
-        songList.setItems(songs);
-        songList.getSelectionModel().selectFirst();
-        songList.refresh();
-
-        authorSongLabel.setText(authorList.getSelectionModel().getSelectedItem().getAuthorName() + " - " + songList.getSelectionModel().getSelectedItem().getSongName());
+        if (!songArrList.isEmpty()){
+            ObservableList<SongNode> songs = FXCollections.observableArrayList(songArrList);
+            songList.setItems(songs);
+            songList.getSelectionModel().selectFirst();
+            songList.refresh();
+            authorSongLabel.setText(authorList.getSelectionModel().getSelectedItem().getAuthorName() + " - " + songList.getSelectionModel().getSelectedItem().getSongName());
+        } else {
+            songList.getItems().clear();
+            songList.refresh();
+            authorSongLabel.setText(authorList.getSelectionModel().getSelectedItem().getAuthorName());
+        }
     }
 
     /**
@@ -302,18 +370,23 @@ public class MainPageController implements Initializable {
      * @param songId int id of the song
      */
     private void getSongLyric(int songId){
-        if(songLyric == null){
-            songLyric = new TextArea();
-        }
+        if(songId >= 0) {
+            if (songLyric == null) {
+                songLyric = new TextArea();
+            }
 
-        ArrayList<LyricNode> songsArrList = new DBExtractionModification().getLyricData(songId);
-        if(!songsArrList.isEmpty()) {
-            lyricNode = songsArrList.get(0);
-            songLyric.setText(lyricNode.getLyric());
+            ArrayList<LyricNode> songsArrList = new DBExtractionModification().getLyricData(songId);
+            if (!songsArrList.isEmpty()) {
+                lyricNode = songsArrList.get(0);
+                songLyric.setText(lyricNode.getLyric());
+            } else {
+                songLyric.setText(null);
+            }
         } else {
-            songLyric.setText(null);
+            songLyric.clear();
         }
 
         songLyric.setEditable(false);
+
     }
 }

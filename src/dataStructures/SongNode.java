@@ -7,11 +7,13 @@ package dataStructures;
 public class SongNode{
     private int sid;
     private String songName;
+    private int authorId;
 
-    public SongNode(int sid, String songName) {
+    public SongNode(int sid, String songName, int authorId) {
        // super(aid, authorName);
         this.sid = sid;
         this.songName = songName;
+        this.authorId = authorId;
     }
 
     public int getSid() {
@@ -22,9 +24,13 @@ public class SongNode{
         return songName;
     }
 
+    public int getAuthorId(){ return authorId; }
+
     public void setSongName(String songName) {
         this.songName = songName;
     }
+
+    public void setAuthorId(int newAuthorId) { this.authorId = newAuthorId; }
 
     @Override
     public String toString() {

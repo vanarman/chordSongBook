@@ -32,11 +32,19 @@ public class AuthorNode {
 
     /**
      * Get author name
+     *
      * @return String author name
      */
     public String getAuthorName() {
         return authorName;
     }
+
+    /**
+     * Set new name for the author
+     *
+     * @param authorName String new author name
+     */
+    public void setAuthorName(String authorName) { this.authorName = authorName; }
 
     /**
      * Author name as string

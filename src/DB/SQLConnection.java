@@ -1,5 +1,7 @@
 package DB;
 
+import org.sqlite.SQLiteConfig;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -18,11 +20,14 @@ public class SQLConnection {
      */
     public SQLConnection(){
         try {
+            SQLiteConfig config = new SQLiteConfig(); //I add this configuration
+            config.enforceForeignKeys(true);
+            config.setEncoding(SQLiteConfig.Encoding.UTF8);
             // db parameters songDB
             String url = "jdbc:sqlite:songBook.sqlite";
             // create a connection to the database
             Class.forName("org.sqlite.JDBC");
-            c = DriverManager.getConnection(url, "vanarman", "");
+            c = DriverManager.getConnection(url, config.toProperties());
             c.setAutoCommit(true);
         } catch (SQLException e) {
             System.out.println("Connection to the DB cannot be performed.");
