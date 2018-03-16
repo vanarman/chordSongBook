@@ -6,13 +6,6 @@
         <option name="appClass" value="Main" />
         <option name="description" value="" />
         <option name="htmlPlaceholderId" value="" />
-        <option name="icons">
-          <JavaFxApplicationIcons>
-            <option name="linuxIcon" value="$PROJECT_DIR$/src/style/img/music.png" />
-            <option name="macIcon" value="$PROJECT_DIR$/src/style/img/music.png" />
-            <option name="windowsIcon" value="$PROJECT_DIR$/src/style/img/music.png" />
-          </JavaFxApplicationIcons>
-        </option>
         <option name="title" value="Song Book" />
         <option name="vendor" value="VanArman (Dmytro Sytnik)" />
         <option name="version" value="" />
