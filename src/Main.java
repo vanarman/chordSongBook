@@ -13,7 +13,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("pages/mainPage.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("mainPage.fxml"));
         primaryStage.setTitle("Guitar Chords Song Book");
         primaryStage.setMinHeight(640);
         primaryStage.setMinWidth(1000);

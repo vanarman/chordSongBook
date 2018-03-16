@@ -15,6 +15,8 @@
       <element id="archive" name="chordSongBook.jar">
         <element id="module-output" name="chordSongBook" />
       </element>
+      <element id="library" level="project" name="sqlite-jdbc-3.18.0" />
+      <element id="file-copy" path="$PROJECT_DIR$/songBook.sqlite" />
     </root>
   </artifact>
 </component>

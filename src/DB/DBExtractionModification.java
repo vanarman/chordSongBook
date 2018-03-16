@@ -1,9 +1,4 @@
-package DB;
-
-import dataStructures.AuthorNode;
-import dataStructures.LyricNode;
-import dataStructures.SongNode;
-import lib.LocalLogger;
+//import java.sql.*;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -20,7 +15,7 @@ public class DBExtractionModification {
     /**
      * Default constructor that creates connection to the DB
      */
-    public DBExtractionModification() {
+    DBExtractionModification() {
         this.c = new SQLConnection().getConnection();
     }
 
@@ -34,6 +29,7 @@ public class DBExtractionModification {
         try {
             String sql = "UPDATE author SET aName = ?  WHERE id = ?;";
             updateNode(aId, aName, sql);
+            c.close();
         } catch (SQLException e) {
             new LocalLogger().logInfo("Cannot resolve updateAuthorName operation where authorId = "+ aId);
         }
@@ -49,6 +45,7 @@ public class DBExtractionModification {
         try {
             String sql = "UPDATE songs SET sName = ?  WHERE id = ?;";
             updateNode(sId, sName, sql);
+            c.close();
         } catch (SQLException e) {
             new LocalLogger().logInfo("Cannot resolve updateSongName operation where songId = "+ sId);
         }
@@ -64,6 +61,7 @@ public class DBExtractionModification {
         try {
             String sql = "UPDATE lyric SET songText = ?  WHERE songId = ?;";
             updateNode(sId, lyric, sql);
+            c.close();
         } catch (SQLException e) {
             new LocalLogger().logInfo("Cannot resolve updateSongName operation where songId = "+ sId);
         }
@@ -89,7 +87,6 @@ public class DBExtractionModification {
         } finally {
             if (psNameUpdate != null) {
                 psNameUpdate.close();
-                c.close();
             }
         }
     }
@@ -103,8 +100,9 @@ public class DBExtractionModification {
         String sql0 = "DELETE FROM lyric WHERE songId = ?";
         String sql1 = "DELETE FROM songs WHERE id = ?";
         try {
-            removeNode(sql0, songId);
             removeNode(sql1, songId);
+            removeNode(sql0, songId);
+            c.close();
         } catch (SQLException e) {
             new LocalLogger().logInfo("Cannot resolve removeSong operation where songId = "+ songId);
         }
@@ -119,6 +117,7 @@ public class DBExtractionModification {
         String sql = "DELETE FROM author WHERE id = ?";
         try {
             removeNode(sql, authorId);
+            c.close();
         } catch (SQLException e) {
             new LocalLogger().logInfo("Cannot resolve removeAuthor operation where songId = "+ authorId);
         }
@@ -142,7 +141,6 @@ public class DBExtractionModification {
         } finally {
             if (psNameUpdate != null) {
                 psNameUpdate.close();
-                c.close();
             }
         }
     }

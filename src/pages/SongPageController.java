@@ -1,9 +1,5 @@
-package pages;
 
-import DB.DBExtractionModification;
-import dataStructures.AuthorNode;
-import dataStructures.LyricNode;
-import dataStructures.SongNode;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -56,7 +52,7 @@ public class SongPageController {
         TextArea songLyric = new TextArea();
 
         songField.appendText(songNode != null ? songNode.getSongName() : "");
-        songLyric.appendText(lyricNode != null ? lyricNode.getLyric() : "");
+        songLyric.appendText(songNode != null ? lyricNode.getLyric() : "");
 
         songGridPane.setVgap(10);
         songGridPane.setHgap(10);

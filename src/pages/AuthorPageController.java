@@ -1,6 +1,5 @@
-package pages;
 
-import dataStructures.AuthorNode;
+
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;

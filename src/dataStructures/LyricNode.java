@@ -1,12 +1,8 @@
-package dataStructures;
-
-import DB.DBExtractionModification;
-
 /**
  * @author Dmytro Sytnik (VanArman)
  * @version 29 December, 2017
  */
-public class LyricNode extends SongNode{
+public class LyricNode extends SongNode {
     private String lyric;
     private static final DBExtractionModification dbExMod = new DBExtractionModification();
 

@@ -1,9 +1,3 @@
-package pages;
-
-import DB.DBExtractionModification;
-import dataStructures.AuthorNode;
-import dataStructures.LyricNode;
-import dataStructures.SongNode;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -47,9 +41,9 @@ public class MainPageController implements Initializable {
      */
     public void initialize(URL location, ResourceBundle resources) {
         // Default images for add, edit and delete buttons
-        Image addImg = new Image(getClass().getResourceAsStream("../style/img/add.png"));
-        Image delImg = new Image(getClass().getResourceAsStream("../style/img/delete.png"));
-        Image editImg = new Image(getClass().getResourceAsStream("../style/img/edit.png"));
+        Image addImg = new Image(getClass().getResourceAsStream("add.png"));
+        Image delImg = new Image(getClass().getResourceAsStream("delete.png"));
+        Image editImg = new Image(getClass().getResourceAsStream("edit.png"));
         //System.out.println(getClass().getResource("../style/img/add.png").getPath());
         // Generate author column with favorite toggle, author list and add, edit, delete buttons
         getAuthorList();
@@ -83,6 +77,8 @@ public class MainPageController implements Initializable {
         HBox toggleFavoriteGroup = new HBox();
         toggleFavoriteGroup.setAlignment(Pos.CENTER);
         toggleFavoriteGroup.setSpacing(5);
+        allSongsBtn.setDisable(true);
+        favoriteSongsBtn.setDisable(true);
         toggleFavoriteGroup.getChildren().addAll(allSongsBtn, favoriteSongsBtn);
 
         // Author column

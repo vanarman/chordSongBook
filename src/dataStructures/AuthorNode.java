@@ -1,6 +1,4 @@
-package dataStructures;
 
-import DB.DBExtractionModification;
 
 /**
  * Author data structure
