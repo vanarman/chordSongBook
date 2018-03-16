@@ -1,6 +1,5 @@
 package pages;
 
-import DB.DBExtractionModification;
 import dataStructures.AuthorNode;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -66,10 +65,8 @@ public class AuthorPageController {
             @Override
             public void handle(ActionEvent event) {
                 if(authorNode == null) {
-                    int newId = new DBExtractionModification().updateAuthor(authorNameField.getText(), -1);
-                    newAuthorNode = new AuthorNode(newId, authorNameField.getText());
+                    newAuthorNode = new AuthorNode(authorNameField.getText());
                 } else {
-                    new DBExtractionModification().updateAuthor(authorNameField.getText(), authorNode.getId());
                     authorNode.setAuthorName(authorNameField.getText());
                 }
 

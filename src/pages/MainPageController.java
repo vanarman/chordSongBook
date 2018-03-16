@@ -50,7 +50,7 @@ public class MainPageController implements Initializable {
         Image addImg = new Image(getClass().getResourceAsStream("../style/img/add.png"));
         Image delImg = new Image(getClass().getResourceAsStream("../style/img/delete.png"));
         Image editImg = new Image(getClass().getResourceAsStream("../style/img/edit.png"));
-
+        //System.out.println(getClass().getResource("../style/img/add.png").getPath());
         // Generate author column with favorite toggle, author list and add, edit, delete buttons
         getAuthorList();
         Button addAuthorBtn = new Button();
@@ -195,8 +195,7 @@ public class MainPageController implements Initializable {
             public void handle(ActionEvent event) {
                 saveLyricBtn.setDisable(!saveLyricBtn.isDisable());
                 songLyric.setEditable(!saveLyricBtn.isDisable());
-
-                new DBExtractionModification().updateLyric(songLyric.getText(), songList.getSelectionModel().getSelectedItem().getSid());
+                lyricNode.setLyric(songLyric.getText());
             }
         });
 
@@ -208,8 +207,10 @@ public class MainPageController implements Initializable {
             @Override
             public void handle(ActionEvent event) {
                 AuthorNode aNode = new AuthorPageController(null).getAuthorNode();
-                authorList.getItems().add(aNode);
-                authorList.refresh();
+                if (aNode != null) {
+                    authorList.getItems().add(aNode);
+                    authorList.refresh();
+                }
             }
         });
 
@@ -255,9 +256,11 @@ public class MainPageController implements Initializable {
         addSongBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                SongNode sNode = new SongPageController(null, lyricNode, authorList.getSelectionModel().getSelectedItem().getId()).getSongNode();
-                songList.getItems().add(sNode);
-                songList.refresh();
+                SongNode sNode = new SongPageController(null, lyricNode, authorList.getSelectionModel().getSelectedItem()).getSongNode();
+                if(sNode != null) {
+                    songList.getItems().add(sNode);
+                    songList.refresh();
+                }
             }
         });
 
@@ -268,7 +271,7 @@ public class MainPageController implements Initializable {
         editSongBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                new SongPageController(songList.getSelectionModel().getSelectedItem(), lyricNode, authorList.getSelectionModel().getSelectedItem().getId());
+                new SongPageController(songList.getSelectionModel().getSelectedItem(), lyricNode, authorList.getSelectionModel().getSelectedItem());
                 songList.refresh();
             }
         });

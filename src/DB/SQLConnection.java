@@ -1,5 +1,6 @@
 package DB;
 
+import lib.LocalLogger;
 import org.sqlite.SQLiteConfig;
 
 import java.sql.Connection;
@@ -19,19 +20,19 @@ public class SQLConnection {
      * Default constructor.
      */
     public SQLConnection(){
+        // System Path to the songDBs
+        String filePath = System.getProperty("user.dir")+System.getProperty("file.separator")+"src"+System.getProperty("file.separator")+"DB"+System.getProperty("file.separator")+"songBook.sqlite";
+
         try {
             SQLiteConfig config = new SQLiteConfig(); //I add this configuration
             config.enforceForeignKeys(true);
             config.setEncoding(SQLiteConfig.Encoding.UTF8);
-            // db parameters songDB
-            String url = "jdbc:sqlite:songBook.sqlite";
             // create a connection to the database
             Class.forName("org.sqlite.JDBC");
-            c = DriverManager.getConnection(url, config.toProperties());
+            c = DriverManager.getConnection("jdbc:sqlite:"+filePath, config.toProperties());
             c.setAutoCommit(true);
         } catch (SQLException e) {
-            System.out.println("Connection to the DB cannot be performed.");
-            System.out.println(e.getMessage());
+            new LocalLogger().logInfo("Cannot establish connection to the DB in path: "+filePath);
             c = null;
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -46,4 +47,5 @@ public class SQLConnection {
     public Connection getConnection() {
         return c;
     }
+
 }

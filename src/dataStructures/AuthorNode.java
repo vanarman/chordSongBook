@@ -1,5 +1,7 @@
 package dataStructures;
 
+import DB.DBExtractionModification;
+
 /**
  * Author data structure
  *
@@ -9,6 +11,7 @@ package dataStructures;
 public class AuthorNode {
     private int id;
     private String authorName;
+    private static final DBExtractionModification dbExMod = new DBExtractionModification();
 
     /**
      * Default constructor
@@ -19,6 +22,16 @@ public class AuthorNode {
     public AuthorNode(int id, String authorName) {
         this.id = id;
         this.authorName = authorName;
+    }
+
+    public AuthorNode(String authorName){
+        int id = dbExMod.addAuthor(authorName);
+        if(id > 0) {
+            this.id = id;
+            this.authorName = authorName;
+        } else {
+            new Exception("Cannot create authorNode");
+        }
     }
 
     /**
@@ -42,9 +55,12 @@ public class AuthorNode {
     /**
      * Set new name for the author
      *
-     * @param authorName String new author name
+     * @param newName String new author name
      */
-    public void setAuthorName(String authorName) { this.authorName = authorName; }
+    public void setAuthorName(String newName) {
+        this.authorName = newName;
+        dbExMod.updateAuthorName(this.id, newName);
+    }
 
     /**
      * Author name as string

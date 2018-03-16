@@ -3,6 +3,7 @@ package DB;
 import dataStructures.AuthorNode;
 import dataStructures.LyricNode;
 import dataStructures.SongNode;
+import lib.LocalLogger;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -22,6 +23,130 @@ public class DBExtractionModification {
     public DBExtractionModification() {
         this.c = new SQLConnection().getConnection();
     }
+
+    /**
+     * Update author table with new author name by ID.
+     *
+     * @param aId int author ID
+     * @param aName String new author name for corresponding author ID
+     */
+    public void updateAuthorName(int aId, String aName){
+        try {
+            String sql = "UPDATE author SET aName = ?  WHERE id = ?;";
+            updateNode(aId, aName, sql);
+        } catch (SQLException e) {
+            new LocalLogger().logInfo("Cannot resolve updateAuthorName operation where authorId = "+ aId);
+        }
+    }
+
+    /**
+     * Update songs table with new song name by ID.
+     *
+     * @param sId int song ID
+     * @param sName String new song name for corresponding song ID
+     */
+    public void updateSongName(int sId, String sName){
+        try {
+            String sql = "UPDATE songs SET sName = ?  WHERE id = ?;";
+            updateNode(sId, sName, sql);
+        } catch (SQLException e) {
+            new LocalLogger().logInfo("Cannot resolve updateSongName operation where songId = "+ sId);
+        }
+    }
+
+    /**
+     * Update lyric table with new song text by ID.
+     *
+     * @param sId int lyric ID
+     * @param lyric String new song lyric for corresponding song ID
+     */
+    public void updateSongLyric(int sId, String lyric){
+        try {
+            String sql = "UPDATE lyric SET songText = ?  WHERE songId = ?;";
+            updateNode(sId, lyric, sql);
+        } catch (SQLException e) {
+            new LocalLogger().logInfo("Cannot resolve updateSongName operation where songId = "+ sId);
+        }
+    }
+
+    /**
+     * Universal update method.
+     *
+     * @param id int ID of the searching field
+     * @param newValue String new value to be updated
+     * @param sql String SQL query to execute
+     * @throws SQLException exception of SQL query execution to avoid system crash
+     */
+    private void updateNode(int id, String newValue, String sql) throws SQLException {
+        PreparedStatement psNameUpdate = null;
+        try {
+            psNameUpdate = c.prepareStatement(sql);
+            psNameUpdate.setString(1, newValue);
+            psNameUpdate.setInt(2, id);
+            psNameUpdate.executeUpdate();
+        } catch (SQLException e) {
+            new LocalLogger().logInfo("Cannot execute update query for: "+ sql);
+        } finally {
+            if (psNameUpdate != null) {
+                psNameUpdate.close();
+                c.close();
+            }
+        }
+    }
+
+    /**
+     * Remove song and song lyric
+     *
+     * @param songId int song id
+     */
+    public void removeSong(int songId) {
+        String sql0 = "DELETE FROM lyric WHERE songId = ?";
+        String sql1 = "DELETE FROM songs WHERE id = ?";
+        try {
+            removeNode(sql0, songId);
+            removeNode(sql1, songId);
+        } catch (SQLException e) {
+            new LocalLogger().logInfo("Cannot resolve removeSong operation where songId = "+ songId);
+        }
+    }
+
+    /**
+     * Remove author and transfer all songs to (unknown) author
+     *
+     * @param authorId int author id
+     */
+    public void removeAuthor(int authorId){
+        String sql = "DELETE FROM author WHERE id = ?";
+        try {
+            removeNode(sql, authorId);
+        } catch (SQLException e) {
+            new LocalLogger().logInfo("Cannot resolve removeAuthor operation where songId = "+ authorId);
+        }
+    }
+
+    /**
+     * Universal remove method that removes datea from the db by given sql query
+     *
+     * @param sql String sql to execute
+     * @param id int ID of the node to remove
+     * @throws SQLException throw exception if cannot perform removing operation
+     */
+    private void removeNode(String sql, int id) throws SQLException {
+        PreparedStatement psNameUpdate = null;
+        try {
+            psNameUpdate = c.prepareStatement(sql);
+            psNameUpdate.setInt(1, id);
+            psNameUpdate.executeUpdate();
+        } catch (SQLException e) {
+            new LocalLogger().logInfo("Cannot execute remove query for: "+ sql);
+        } finally {
+            if (psNameUpdate != null) {
+                psNameUpdate.close();
+                c.close();
+            }
+        }
+    }
+
 
     /**
      * Get authors list
@@ -51,7 +176,7 @@ public class DBExtractionModification {
 
             statement.close();
         } catch (SQLException e) {
-            System.out.println("Cannot resolve getAuthorsList operation where authorId = "+ authorId);
+            new LocalLogger().logInfo("Cannot resolve getAuthorsList operation where authorId = "+ authorId);
         }
         return authorScope;
     }
@@ -64,7 +189,7 @@ public class DBExtractionModification {
      */
     public ArrayList<SongNode> getSongData(int authorId) {
         if(authorId < 0){
-            System.out.println("authorID is: "+authorId+" for getSongData is not valid.");
+            //System.out.println("authorID is: "+authorId+" for getSongData is not valid.");
             return null;
         }
 
@@ -85,7 +210,7 @@ public class DBExtractionModification {
 
             statement.close();
         } catch (SQLException e) {
-            System.out.println("Cannot resolve getSongData operation where authorId = "+ authorId);
+            new LocalLogger().logInfo("Cannot resolve getSongData operation where authorId = "+ authorId);
         }
         return songScope;
     }
@@ -98,7 +223,7 @@ public class DBExtractionModification {
      */
     public ArrayList<LyricNode> getLyricData(int songId) {
         if(songId < 0){
-            System.out.println("songId for getLyricData is not valid. SongId: "+ songId);
+            new LocalLogger().logInfo("songId for getLyricData is not valid. SongId: "+ songId);
         }
 
         Statement statement = null;
@@ -119,113 +244,45 @@ public class DBExtractionModification {
 
             statement.close();
         } catch (SQLException e) {
-            System.out.println("Cannot resolve getLyricData operation where songId = "+ songId);
+            new LocalLogger().logInfo("Cannot resolve getLyricData operation where songId = "+ songId);
         }
         return lyricScope;
     }
 
     /**
-     * Remove song and song lyric
+     * Add new author to the DB
      *
-     * @param songId int song id
+     * @param authorName String name of the new author
+     * @return int ID of the created row in DB to create corresponding node
      */
-    public void removeSong(int songId) {
-
-        String sql0 = "DELETE FROM lyric WHERE songId = "+ songId;
-        String sql1 = "DELETE FROM songs WHERE id = "+ songId;
-
-        try (
-            Connection conn = c;
-            PreparedStatement pstmt0 = conn.prepareStatement(sql0);
-            PreparedStatement pstmt1 = conn.prepareStatement(sql1)) {
-            // Execute remove statement
-            pstmt0.executeUpdate();
-            pstmt1.executeUpdate();
-
-            pstmt0.close();
-            pstmt1.close();
-        } catch (SQLException e) {
-            System.out.println("Cannot resolve removeSong operation where songId = "+ songId);
-        }
-    }
-
-    /**
-     * Remove author and transfer all songs to (unknown) author
-     * @param authorId int author id
-     */
-    public void removeAuthor(int authorId){
-        String sql = "DELETE FROM author WHERE id = "+ authorId;
-
-        try {
-            Connection conn = c;
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            // Execute remove statement
-            pstmt.executeUpdate();
-            pstmt.close();
-        } catch (SQLException e) {
-            System.out.println("Cannot resolve removeAuthor operation where authorId = "+ authorId);
-        }
-    }
-
-    /**
-     * Update author name in db
-     *
-     * @param newName  String new author name
-     * @param authorId int author id
-     */
-    public int updateAuthor(String newName, int authorId){
-        int generKey = authorId;
-        String sql = null;
-        if(authorId >= 0) {
-            sql = "UPDATE author SET aName = ?  WHERE id = ?;";
-        } else {
-            sql = "INSERT INTO author VALUES (null, ?)";
-        }
+    public int addAuthor(String authorName){
+        String sql = "INSERT INTO author VALUES (null, ?)";
+        int generKey = -1;
         try {
             PreparedStatement pstmtUpdate = c.prepareStatement(sql);
-            if(authorId >= 0) {
-                pstmtUpdate.setString(1, newName);
-                pstmtUpdate.setInt(2, authorId);
-            } else {
-                pstmtUpdate.setString(1, newName);
-            }
+            pstmtUpdate.setString(1, authorName);
             pstmtUpdate.executeUpdate();
             ResultSet rs = pstmtUpdate.getGeneratedKeys();
             if(rs != null && rs.next()){
                 generKey = rs.getInt(1);
             }
 
-
             pstmtUpdate.close();
 
         } catch (SQLException e) {
-            System.out.println("Cannot resolve updateAuthor operation where authorId = "+ authorId);
+            new LocalLogger().logInfo("Cannot resolve addAuthor operation where authorName = "+ authorName);
         }
         return generKey;
     }
 
     /**
-     * Update lyric in db
+     * Add new song and lyric
      *
-     * @param newLyric  String new Lyric name
-     * @param songId int song id
+     * @param songName String name of the new song
+     * @param songLyric String lyric of the new song
+     * @param authorId int ID of the song author
+     * @return int ID of the recently created row in DB in order to create corresponding node
      */
-    public void updateLyric(String newLyric, int songId){
-        String sql = "UPDATE lyric SET songText = ?  WHERE songId = ?";
-
-        try {
-            Connection conn = c;
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, newLyric);
-            pstmt.setInt(2, songId);
-            // Execute update statement
-            pstmt.executeUpdate();
-            pstmt.close();
-        } catch (SQLException e) {
-            System.out.println("Cannot resolve updateAuthor operation where authorId = "+ songId);
-        }
-    }
-
     public int addNewSong(String songName, String songLyric, int authorId){
         String sql = "INSERT INTO songs (sName, authorId) VALUES (?, ?)";
         int generKey = 0;
@@ -250,25 +307,9 @@ public class DBExtractionModification {
             pstmtSong.executeUpdate();
             pstmtSong.close();
         } catch (SQLException e) {
-            System.out.println("Cannot resolve addNewSong operation where authorId = "+ authorId);
+            new LocalLogger().logInfo("Cannot resolve addNewSong operation where authorId = "+ authorId);
         }
 
         return generKey;
-    }
-
-    public void updateSong(String songName, int songId) {
-        String sql = "UPDATE songs SET sName = ?  WHERE id = ?";
-
-        try {
-            Connection conn = c;
-            PreparedStatement pstmtSongUp = conn.prepareStatement(sql);
-            pstmtSongUp.setString(1, songName);
-            pstmtSongUp.setInt(2, songId);
-            // Execute update statement
-            pstmtSongUp.executeUpdate();
-            pstmtSongUp.close();
-        } catch (SQLException e) {
-            System.out.println("Cannot resolve updateSong operation where authorId = "+ songId);
-        }
     }
 }
