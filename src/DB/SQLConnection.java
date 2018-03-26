@@ -10,7 +10,7 @@ import java.sql.SQLException;
  * @author Dmytro Sytnik (VanArman)
  * @version 21 February, 2018
  */
-public class SQLConnection {
+class SQLConnection {
     private Connection c;
 
     /**

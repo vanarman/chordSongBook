@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.util.Objects;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -10,8 +11,7 @@ import java.util.logging.Logger;
  */
 
 
-
-public class LocalLogger {
+class LocalLogger {
 
     private static final Logger logger = Logger.getLogger(LocalLogger.class.getName());
 
@@ -23,7 +23,7 @@ public class LocalLogger {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        logger.addHandler(file);
+        logger.addHandler(Objects.requireNonNull(file));
         logger.setLevel(Level.INFO);
     }
 

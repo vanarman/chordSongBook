@@ -1,7 +1,5 @@
 
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -17,12 +15,12 @@ import javafx.stage.Stage;
  * @author Dmytro Sytnik (VanArman)
  * @version 22 February, 2018
  */
-public class AuthorPageController {
-        private GridPane authorGridPane = new GridPane();
-        private AuthorNode newAuthorNode;
+class AuthorPageController {
+    private AuthorNode newAuthorNode;
 
     public AuthorPageController(AuthorNode authorNode) {
         StackPane authorLayout = new StackPane();
+        GridPane authorGridPane = new GridPane();
         authorLayout.getChildren().add(authorGridPane);
         Scene authorScene = new Scene(authorLayout, 370, 70);
         Stage authorStage = new Stage();
@@ -53,24 +51,16 @@ public class AuthorPageController {
         ColumnConstraints col1 = new ColumnConstraints(200);
         authorGridPane.getColumnConstraints().addAll(col0, col1);
 
-        cancelBtn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                authorStage.close();
-            }
-        });
+        cancelBtn.setOnAction(event -> authorStage.close());
 
-        saveBtn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                if(authorNode == null) {
-                    newAuthorNode = new AuthorNode(authorNameField.getText());
-                } else {
-                    authorNode.setAuthorName(authorNameField.getText());
-                }
-
-                authorStage.close();
+        saveBtn.setOnAction(event -> {
+            if(authorNode == null) {
+                newAuthorNode = new AuthorNode(authorNameField.getText());
+            } else {
+                authorNode.setAuthorName(authorNameField.getText());
             }
+
+            authorStage.close();
         });
 
         newAuthorNode = authorNode;

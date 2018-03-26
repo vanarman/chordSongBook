@@ -9,8 +9,8 @@ import java.util.ArrayList;
  * @author Dmytro Sytnik (VanArman)
  * @version 21 February, 2018
  */
-public class DBExtractionModification {
-    private Connection c;
+class DBExtractionModification {
+    private final Connection c;
 
     /**
      * Default constructor that creates connection to the DB
@@ -29,7 +29,6 @@ public class DBExtractionModification {
         try {
             String sql = "UPDATE author SET aName = ?  WHERE id = ?;";
             updateNode(aId, aName, sql);
-            c.close();
         } catch (SQLException e) {
             new LocalLogger().logInfo("Cannot resolve updateAuthorName operation where authorId = "+ aId);
         }
@@ -45,7 +44,6 @@ public class DBExtractionModification {
         try {
             String sql = "UPDATE songs SET sName = ?  WHERE id = ?;";
             updateNode(sId, sName, sql);
-            c.close();
         } catch (SQLException e) {
             new LocalLogger().logInfo("Cannot resolve updateSongName operation where songId = "+ sId);
         }
@@ -61,7 +59,6 @@ public class DBExtractionModification {
         try {
             String sql = "UPDATE lyric SET songText = ?  WHERE songId = ?;";
             updateNode(sId, lyric, sql);
-            c.close();
         } catch (SQLException e) {
             new LocalLogger().logInfo("Cannot resolve updateSongName operation where songId = "+ sId);
         }
@@ -76,9 +73,8 @@ public class DBExtractionModification {
      * @throws SQLException exception of SQL query execution to avoid system crash
      */
     private void updateNode(int id, String newValue, String sql) throws SQLException {
-        PreparedStatement psNameUpdate = null;
+        PreparedStatement psNameUpdate = c.prepareStatement(sql);
         try {
-            psNameUpdate = c.prepareStatement(sql);
             psNameUpdate.setString(1, newValue);
             psNameUpdate.setInt(2, id);
             psNameUpdate.executeUpdate();
@@ -102,7 +98,6 @@ public class DBExtractionModification {
         try {
             removeNode(sql1, songId);
             removeNode(sql0, songId);
-            c.close();
         } catch (SQLException e) {
             new LocalLogger().logInfo("Cannot resolve removeSong operation where songId = "+ songId);
         }
@@ -117,7 +112,6 @@ public class DBExtractionModification {
         String sql = "DELETE FROM author WHERE id = ?";
         try {
             removeNode(sql, authorId);
-            c.close();
         } catch (SQLException e) {
             new LocalLogger().logInfo("Cannot resolve removeAuthor operation where songId = "+ authorId);
         }
@@ -131,9 +125,8 @@ public class DBExtractionModification {
      * @throws SQLException throw exception if cannot perform removing operation
      */
     private void removeNode(String sql, int id) throws SQLException {
-        PreparedStatement psNameUpdate = null;
+        PreparedStatement psNameUpdate = c.prepareStatement(sql);
         try {
-            psNameUpdate = c.prepareStatement(sql);
             psNameUpdate.setInt(1, id);
             psNameUpdate.executeUpdate();
         } catch (SQLException e) {
@@ -153,8 +146,8 @@ public class DBExtractionModification {
      * @return ArrayList authors
      */
     public ArrayList<AuthorNode> getAuthorsList(int authorId){
-        Statement statement = null;
-        ResultSet result = null;
+        Statement statement;
+        ResultSet result;
         ArrayList<AuthorNode> authorScope = new ArrayList<AuthorNode>();
 
         try {
@@ -187,7 +180,6 @@ public class DBExtractionModification {
      */
     public ArrayList<SongNode> getSongData(int authorId) {
         if(authorId < 0){
-            //System.out.println("authorID is: "+authorId+" for getSongData is not valid.");
             return null;
         }
 
@@ -203,8 +195,6 @@ public class DBExtractionModification {
             while (result != null && result.next()) {
                 songScope.add(new SongNode(result.getInt("id"), result.getString("sName"), result.getInt("authorId")));
             }
-
-
 
             statement.close();
         } catch (SQLException e) {
@@ -224,8 +214,8 @@ public class DBExtractionModification {
             new LocalLogger().logInfo("songId for getLyricData is not valid. SongId: "+ songId);
         }
 
-        Statement statement = null;
-        ResultSet result = null;
+        Statement statement;
+        ResultSet result;
         ArrayList<LyricNode> lyricScope = new ArrayList<LyricNode>();
 
         String sql = "SELECT L.id, L.songText, L.songId, S.sName, S.authorId, A.aName FROM lyric L, author A, songs S ";
@@ -286,8 +276,7 @@ public class DBExtractionModification {
         int generKey = 0;
 
         try {
-            Connection conn = c;
-            PreparedStatement pstmtSong = conn.prepareStatement(sql);
+            PreparedStatement pstmtSong = c.prepareStatement(sql);
             pstmtSong.setString(1, songName);
             pstmtSong.setInt(2, authorId);
             // Execute update statement
@@ -299,7 +288,7 @@ public class DBExtractionModification {
             }
             
             sql = "INSERT INTO lyric (songText, songId) VALUES (?, ?)";
-            pstmtSong = conn.prepareStatement(sql);
+            pstmtSong = c.prepareStatement(sql);
             pstmtSong.setString(1, songLyric);
             pstmtSong.setInt(2, generKey);
             pstmtSong.executeUpdate();

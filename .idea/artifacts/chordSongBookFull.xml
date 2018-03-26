@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
-  <artifact type="javafx" name="chordSongBook">
-    <output-path>$PROJECT_DIR$/out/artifacts/chordSongBook</output-path>
+  <artifact type="javafx" name="chordSongBookFull">
+    <output-path>$PROJECT_DIR$/out/artifacts/chordSongBookFull</output-path>
     <properties id="javafx-properties">
       <options>
         <option name="appClass" value="Main" />
@@ -13,9 +13,10 @@
             <option name="windowsIcon" value="$PROJECT_DIR$/music.png" />
           </JavaFxApplicationIcons>
         </option>
-        <option name="title" value="Song Book" />
-        <option name="vendor" value="VanArman (Dmytro Sytnik)" />
-        <option name="version" value="" />
+        <option name="nativeBundle" value="all" />
+        <option name="title" value="Guitar Chords Song eBook" />
+        <option name="vendor" value="Dmytro Sytnik (VanArman)" />
+        <option name="version" value="1.0" />
       </options>
     </properties>
     <root id="root">

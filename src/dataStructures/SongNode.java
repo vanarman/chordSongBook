@@ -33,14 +33,10 @@ public class SongNode{
         return songName;
     }
 
-    public int getAuthorId(){ return authorId; }
-
     public void setSongName(String newName) {
         this.songName = newName;
         dbExMod.updateSongName(sid, newName);
     }
-
-    public void setAuthorId(int newAuthorId) { this.authorId = newAuthorId; }
 
     @Override
     public String toString() {
